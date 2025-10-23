@@ -20,14 +20,14 @@ export class AuthService {
     }
 
     async login(user: { id: number; username: string; role: string }) {
-        const payload = { sub: user.id, username: user.username, role: user.role };
-        const accessToken = this.jwtService.sign(payload);
+    const payload = { sub: user.id, username: user.username, role: user.role };
+    const accessToken = this.jwtService.sign(payload as any);
 
         // create refresh token using a separate secret so you can revoke access by changing refresh secret
-        const refreshToken = this.jwtService.sign(payload, {
+        const refreshToken = this.jwtService.sign(payload as any, {
             secret: process.env.JWT_REFRESH_TOKEN_SECRET || 'refresh_secret',
             expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN || '10d',
-        });
+        } as any);
 
         // store refresh token in db (plain text or hashed)
         // for better security, hash the token before storing. Here we'll store plain for simplicity.
@@ -45,7 +45,7 @@ export class AuthService {
         try {
             const decoded = await this.jwtService.verify(refreshToken, {
                 secret: process.env.JWT_REFRESH_TOKEN_SECRET || 'refresh_secret',
-            });
+            } as any) as any;
             if (!decoded) throw new UnauthorizedException('Invalid refresh token');
 
             // check stored token matches
@@ -59,11 +59,11 @@ export class AuthService {
             }
 
             const payload = { sub: found.id, username: found.username, role: found.role };
-            const accessToken = this.jwtService.sign(payload);
-            const newRefreshToken = this.jwtService.sign(payload, {
+            const accessToken = this.jwtService.sign(payload as any);
+            const newRefreshToken = this.jwtService.sign(payload as any, {
                 secret: process.env.JWT_REFRESH_TOKEN_SECRET || 'refresh_secret',
                 expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN || '10d',
-            });
+            } as any);
 
             await this.usersService.setRefreshToken(found.id, newRefreshToken);
             return { accessToken, refreshToken: newRefreshToken };
